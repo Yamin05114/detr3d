@@ -153,8 +153,8 @@ def conv1x1(in_channels, out_channels, module_name, postfix, stride=1, groups=1,
     ]
 
 
-
 class Hsigmoid(nn.Module):
+    """Hsigmoid 相比传统sigmoid节约大量算力，[-3, 3]之外分别为0和1，之内是均匀增加"""
     def __init__(self, inplace=True):
         super(Hsigmoid, self).__init__()
         self.inplace = inplace
