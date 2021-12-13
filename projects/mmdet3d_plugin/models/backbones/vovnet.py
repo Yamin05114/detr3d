@@ -114,7 +114,7 @@ def dw_conv3x3(in_channels, out_channels, module_name, postfix, stride=1, kernel
 
 
 def conv3x3(in_channels, out_channels, module_name, postfix, stride=1, groups=1, kernel_size=3, padding=1):
-    """3x3 convolution with padding"""
+    """3x3 convolution with padding: conv + batchnorm + relu"""
     return [
         (
             f"{module_name}_{postfix}/conv",
@@ -134,7 +134,7 @@ def conv3x3(in_channels, out_channels, module_name, postfix, stride=1, groups=1,
 
 
 def conv1x1(in_channels, out_channels, module_name, postfix, stride=1, groups=1, kernel_size=1, padding=0):
-    """1x1 convolution with padding"""
+    """1x1 convolution with padding, conv 1x1 + BN + relu"""
     return [
         (
             f"{module_name}_{postfix}/conv",
@@ -151,6 +151,7 @@ def conv1x1(in_channels, out_channels, module_name, postfix, stride=1, groups=1,
         (f"{module_name}_{postfix}/norm", nn.BatchNorm2d(out_channels)),
         (f"{module_name}_{postfix}/relu", nn.ReLU(inplace=True)),
     ]
+
 
 
 class Hsigmoid(nn.Module):
