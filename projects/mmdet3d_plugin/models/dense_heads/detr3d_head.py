@@ -56,14 +56,17 @@ class Detr3DHead(DETRHead):
             self.code_weights, requires_grad=False), requires_grad=False)
 
     def _init_layers(self):
-        """Initialize classification branch and regression branch of head."""
+        """Initialize classification branch and regression branch of head.
+           cls分支有normalization
+           regression没有normalization，是因为大小不一定吗？
+        """
         cls_branch = []
         for _ in range(self.num_reg_fcs):
             cls_branch.append(Linear(self.embed_dims, self.embed_dims))
             cls_branch.append(nn.LayerNorm(self.embed_dims))
             cls_branch.append(nn.ReLU(inplace=True))
         cls_branch.append(Linear(self.embed_dims, self.cls_out_channels))
-        fc_cls = nn.Sequential(*cls_branch)
+        fc_cls = nn.Sequential(*cls_branch) # 构建pytorch module
 
         reg_branch = []
         for _ in range(self.num_reg_fcs):
@@ -79,7 +82,8 @@ class Detr3DHead(DETRHead):
         # encode feature map when as_two_stage is True.
         num_pred = (self.transformer.decoder.num_layers + 1) if \
             self.as_two_stage else self.transformer.decoder.num_layers
-
+        
+        # 
         if self.with_box_refine:
             self.cls_branches = _get_clones(fc_cls, num_pred)
             self.reg_branches = _get_clones(reg_branch, num_pred)
@@ -115,7 +119,7 @@ class Detr3DHead(DETRHead):
                 head with normalized coordinate format (cx, cy, w, l, cz, h, theta, vx, vy). \
                 Shape [nb_dec, bs, num_query, 9].
         """
-
+        # query是随机生成的
         query_embeds = self.query_embedding.weight
         
         hs, init_reference, inter_references = self.transformer(
@@ -124,10 +128,11 @@ class Detr3DHead(DETRHead):
             reg_branches=self.reg_branches if self.with_box_refine else None,  # noqa:E501
             img_metas=img_metas,
         )
+        
         hs = hs.permute(0, 2, 1, 3)
         outputs_classes = []
         outputs_coords = []
-
+        
         for lvl in range(hs.shape[0]):
             if lvl == 0:
                 reference = init_reference
